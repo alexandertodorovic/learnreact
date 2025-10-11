@@ -1,5 +1,28 @@
+'use client';
+
+import { Contact } from '@/data/schema';
+import { useRouter } from 'next/navigation';
+
 export function ContactForm() {
-    return <form>
+    const { push } = useRouter();
+    async function handleAction(formData: FormData) {
+        const contact = Object.fromEntries(
+            formData,
+        ) as Contact;
+        const response = await fetch('api', {
+            method: 'POST',
+            body: JSON.stringify(contact),
+        });
+        if (!response.ok) {
+            console.error('Something went wrong');
+            return;
+        }
+        push(
+            '/thanks/?name=' +
+            encodeURIComponent(contact.name),
+        );
+    }
+    return <form action={handleAction}>
         <div className="field">
             <label htmlFor="name">Your name</label>
             <input type="text" id="name" name="name" />
@@ -21,5 +44,6 @@ export function ContactForm() {
             <label htmlFor="notes">Additional notes</label>
             <textarea id="notes" name="notes" />
         </div >
-    </form >;
+        <button type="submit">Submit</button>
+    </form>;
 }
