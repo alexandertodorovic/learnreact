@@ -1,16 +1,16 @@
+'use server';
+
 import {
     createClient,
     type Client,
 } from '@libsql/client';
 
+import { redirect } from 'next/navigation';
 import { Contact } from './schema';
 
-export async function insertContact({
-    name,
-    email,
-    reason,
-    notes,
-}: Contact) {
+export async function insertContact(formData: FormData) {
+    const { name, email, reason, notes } =
+        Object.fromEntries(formData) as Contact;
     let client: Client | undefined;
     let ok = true;
     try {
@@ -27,7 +27,9 @@ export async function insertContact({
     if (client) {
         client.close();
     }
-    return {
-        ok
-    };
+    if (ok) {
+        redirect(
+            `/thanks/?name=${encodeURIComponent(name)}`,
+        );
+    }
 }
