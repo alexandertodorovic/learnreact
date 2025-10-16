@@ -1,38 +1,42 @@
-'use server'
+'use server';
 
-import { redirect } from 'next/navigation';
 import {
-    createClient,
-    type Client,
+  createClient,
+  type Client,
 } from '@libsql/client';
-import { Contact } from './schema';
+import { redirect } from 'next/navigation';
+import { contactSchema } from './schema';
 
-export async function insertContact(formData: FormData) {
-    const { name, email, reason, notes } =
-        Object.fromEntries(formData) as Contact;
-
-    let client: Client | undefined;
-    let ok = true;
-    try {
-        
-        client = createClient({
-            url: process.env.DB_URL ?? '',
-        });
-        await client.execute({
-            sql: 'INSERT INTO contact(name, email, reason, notes) VALUES (?, ?, ?, ?)',
-            args: [name, email, reason, notes],
-        });
-    } catch {
-        ok = false;
-    }
-
-    if (client) {
-        client.close();
-    }
-    if (ok) {
-        redirect(
-            `/thanks/?name=${encodeURIComponent(name)}`,
-        );
-    }
-
+export async function insertContact(
+  formData: FormData,
+) {
+  const parsedResult = contactSchema.safeParse(
+    Object.fromEntries(formData),
+  );
+  if (!parsedResult.success) {
+    return;
+  }
+  const { name, email, reason, notes } =
+    parsedResult.data;
+  let client: Client | undefined;
+  let ok = true;
+  try {
+    client = createClient({
+      url: process.env.DB_URL ?? '',
+    });
+    await client.execute({
+      sql: 'INSERT INTO contact(name, email, reason, notes) VALUES (?, ?, ?, ?)',
+      args: [name, email, reason, notes ?? null],
+    });
+  } catch {
+    ok = false;
+  }
+  if (client) {
+    client.close();
+  }
+  if (ok) {
+    redirect(
+      `/thanks/?name=${encodeURIComponent(name)}`,
+    );
+  }
 }
