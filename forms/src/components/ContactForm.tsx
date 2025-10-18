@@ -1,5 +1,6 @@
 'use client'
 
+import { useFormStatus } from 'react-dom';
 import { insertContact } from '@/data/insertContact';
 
 export function ContactForm() {
@@ -32,7 +33,20 @@ export function ContactForm() {
                 <label htmlFor="notes">Additional notes</label>
                 <textarea id="notes" name="notes" />
             </div>
-            <button type="submit">Submit</button>
+             <SubmitButton />
         </form>
+
+    );
+}
+
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <>
+            {pending && <p role="alert">Saving ...</p>}
+            <button type="submit" disabled={pending}>
+                Submit
+            </button>
+        </>
     );
 }
